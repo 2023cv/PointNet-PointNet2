@@ -71,6 +71,8 @@ $$
 ## 基于点特征传播的点云分割方法
 
 ​	使用基于特征距离的插值传播方法逆向生成前一个抽象层所有点的近邻特征，再与前一个抽象层的分组学习特征拼接为逐点分割特征，使用PointNet的部分仿射架构进行特征学习，进行下一轮特征传播，直到传播至原始点云。在插值中，使用k个最近邻的反距离加权平均特征。
+
+
 $$
-f^{(j)}(x)=\frac{\sum_{i=1}^{k} w_{i}(x) f_{i}^{(j)}}{\sum_{i=1}^{k} w_{i}(x)} \quad \text { where } \quad w_{i}(x)=\frac{1}{d\left(x, x_{i}\right)^{p}}, j=1, \ldots, C
+f^{(j)}(x)=\frac{\sum_{i=1}^{k} w_{i}(x) f_{i}^{(j)}}{\sum_{i=1}^{k} w_{i}(x)} \quad \text { where } \quad w_{i}(x)=\frac{1}{d\left(x, x_{i}\right)^{p}}, j=1, \dots, C
 $$
