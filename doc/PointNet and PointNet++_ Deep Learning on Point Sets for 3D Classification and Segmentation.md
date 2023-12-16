@@ -28,7 +28,7 @@ $$
 $$
 
 $$
-\begin{equation*} \forall\epsilon >0,\exist h,\gamma,\quad st. \left\vert f(S)-\gamma\left(\underset{x_{i}\in S}{MAX} \{h(x_{i})\}\right)\right\vert < \epsilon \end{equation*}
+\begin{equation*} \forall\epsilon >0,\exists h,\gamma,\quad st. \left\vert f(S)-\gamma\left(\underset{x_{i}\in S}{MAX} \{h(x_{i})\}\right)\right\vert < \epsilon \end{equation*}
 $$
 
 ## 局部特征和全局特征的聚合
