@@ -1,0 +1,116 @@
+%!TEX program = xelatex
+\documentclass[aspectratio=169]{ctexbeamer}
+\usepackage{multicol}
+\usepackage{amsfonts,amsmath,amscd,amssymb,amsthm}
+\usepackage{latexsym,bm}
+\usepackage{cite}
+\usepackage{mathtools,mathdots,graphicx,array,mathrsfs}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{color}
+\usepackage{enumitem}
+\usepackage{diagbox}
+\usepackage{xcolor,tcolorbox,tikz,tkz-tab,mdframed,tikz-cd}
+\usepackage{framed}
+\usepackage{verbatim}
+\usepackage{extarrows}
+\usepackage{fontspec}
+\usepackage{hyperref}
+\usepackage{braket}
+
+% \usepackage{physics}  
+                        %%% 宽高比说明 %%%%
+%% ctexbeamer宏包支持各种宽高比，但本模板只适配了4:3（默认）和16:9的宽高比背景。
+%% 添加选项aspectratio=169或aspectratio=43可以更改宽高比，默认是4:3
+\usepackage[bluetheme]{ustcbeamer}
+\input{ustctheme.tex}
+                        %%% ustcbeamer说明 %%%%
+%% 宏包使用了TikZ代码形式的背景文件（在子文件夹theme中），默认选项"bluetheme"，是科大校徽的蓝色；此外ustcbeamer还内置了红色和黑色主题"redtheme","blacktheme"。
+
+                        %%% 自定义你的主题颜色 %%%
+%% 一旦使用了下述命令就会覆盖ustcbeamer的内置颜色选项，你可以设置自己喜欢的RGB色值：
+% \definecolor{themecolor}{RGB}{0,150,0} % 这是绿色主题
+% \definecolor{themecolor}{RGB}{0,150,150} % 青色主题，也蛮好看的
+
+%% 注意小写rgb和大写RGB表示的色值相差255倍，即RGB{255,255,255}=rgb{1,1,1}；
+% \definecolor{themecolor}{rgb}{0,0.5,0.3} % 深绿色主题
+
+%% 建议自定义的主题颜色选择偏深色
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\title[Algebraic structure]{
+    PointNet++
+}
+\author[USTC]{}
+\institute[USTC]{
+中国科学技术大学
+}
+\date{\today}
+\begin{document}
+%\section<⟨mode specification⟩>[⟨short section name⟩]{⟨section name⟩}
+%小于等于六个标题为恰当的标题
+
+%--------------------
+%标题页
+%--------------------
+\maketitleframe
+%--------------------
+%目录页
+%--------------------
+%beamer 101
+\begin{frame}%
+	\frametitle{大纲}%
+   % \begin{multicols}{2} % 目录分栏
+	\tableofcontents[hideallsubsections]%仅显示节
+	%\tableofcontents % 显示所节和子节
+    % \end{multicols}
+
+\end{frame}%
+%--------------------
+%节目录页
+%--------------------
+\AtBeginSection[]{
+\setbeamertemplate{footline}[footlineoff] % 取消页脚
+  \begin{frame}%
+     % \begin{multicols}{2} % 目录分栏
+
+    \frametitle{大纲}
+	%\tableofcontents[currentsection,subsectionstyle=show/hide/hide]%高亮当前节，不显示子节
+    \tableofcontents[currentsection,subsectionstyle=show/show/hide]%show,shaded,hide
+    % \end{multicols}
+
+  \end{frame}
+\setbeamertemplate{footline}[footlineon]%添加页脚
+}
+%--------------------
+%子节目录页
+%--------------------
+\AtBeginSubsection[]{
+\setbeamertemplate{footline}[footlineoff]%取消页脚
+  \begin{frame}%
+    \frametitle{大纲}
+	%\tableofcontents[currentsection,subsectionstyle=show/hide/hide]%高亮当前节，不显示子节
+    \tableofcontents[currentsection,subsectionstyle=show/shaded/hide]%show,shaded,hide
+  \end{frame}
+\setbeamertemplate{footline}[footlineon]%添加页脚
+}
+
+
+\input{doc/intro}
+\input{doc/pointnet}
+\input{doc/pointnet++}
+
+
+
+
+
+
+
+
+\begin{frame}
+  \frametitle{致谢}
+  \centerline{\Large 谢谢!}
+\end{frame}
+
+\end{document}
