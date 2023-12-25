@@ -76,3 +76,433 @@ $$
 $$
 f^{(j)}(x)=\frac{\sum_{i=1}^{k} w_{i}(x) f_{i}^{(j)}}{\sum_{i=1}^{k} w_{i}(x)} \quad \text { where } \quad w_{i}(x)=\frac{1}{d\left(x, x_{i}\right)^{p}}, j=1, \dots, C
 $$
+
+
+
+
+
+
+
+
+
+
+## 代码链接
+
+我们代码的链接是：https://rec.ustc.edu.cn/share/bf6ef200-a2d1-11ee-a5ba-9b52b7de6191
+
+## 工作类型
+
+首先，我们成功运行了pointnet和pointnet++的开源代码。此外，因为论文作者没有给出MRG策略的实现代码，网上也搜索不到该策略的实现，所以我们自己写代码复现了分类任务下的MRG策略。
+
+## 运行环境配置说明
+
+我们的实验环境是NVIDIA GeForce RTX 3090，Pytorch 1.10.1，Python 3.7。创建好Python版本为3.7的conda虚拟环境之后，使用以下命令安装所需要的包和库：
+
+```
+conda install pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit=11.3 -c pytorch -c conda-forge
+```
+
+```
+conda install tqdm
+```
+
+并安装用于可视化的库：
+
+```
+conda install opencv
+```
+
+## 数据集介绍及下载链接
+
+本工作分别在分类任务、部件分割任务和语义分割任务下进行了实验，以下是各个任务对应的数据集：
+
+**ModelNet40数据集（用于分类任务）：**
+
+ModelNet40数据集包含了40个类别（如飞机，汽车等）的CAD模型数据。训练集有9843个点云数据，测试集有2468个点云数据。
+
+下载链接：https://shapenet.cs.stanford.edu/media/modelnet40_normal_resampled.zip
+
+**ShapeNet数据集（用于部件分割任务）：**ShapeNet数据集包含14个大类别（如飞机，椅子等）和55个小类别的CAD模型数据。训练集有14007个点云数据，测试集有2874个点云数据。
+
+下载链接：https://shapenet.cs.stanford.edu/media/shapenetcore_partanno_segmentation_benchmark_v0_normal.zip
+
+**S3DIS数据集（用于语义分割任务）：**S3DIS是大规模室内三维空间数据集，包含了6个建筑物，共计271个房间。房间内包含13类物体： 天花板、地板、门、沙发等。
+
+下载链接：https://pan.baidu.com/s/1BtDCIDYEbILDWms1__9tpw?pwd=0acs
+
+## 指标介绍
+
+本工作分别在分类、部件分割和语义分割下进行了实验，以下是各个任务对应的评价指标：
+
+**ModelNet40数据集上的分类任务的评价指标：**
+
+accuracy：准确率，即分类正确的样本占总样本个数的比例。
+
+**ShapeNet数据集上的部件分割任务的评价指标：**
+
+mIoU：平均交并比，计算公式为：
+
+$mIoU = \dfrac{1}{k+1}\sum_{i=0}^{k}\dfrac{p_{ii}}{\sum_{j=0}^{k}p_{ij}+\sum_{j=0}^{k}p_{ji}-p_{ii}}$
+
+其中，k为类别数，i表示真实值，j表示预测值，$p_{ij}$表示将i预测为j的点云个数，$p_{ji}$表示将j预测为i的点云个数。
+
+**S3DIS数据集上的语义分割任务的评价指标：**
+
+accuracy：准确率。
+
+class avg IoU：类别平均交并比，计算语义分割中每个类的交并比，然后求平均值。
+
+## 代码说明
+
+代码结构及说明如下：
+
+```python
+└── Pointnet_Pointnet2_pytorch
+    ├── data							# 存放三个任务对应的数据集
+    ├── data_utils
+    │   ├── collect_indoor3d_data.py	# S3DIS数据集的预处理
+    │   ├── indoor3d_util.py
+    │   ├── meta
+    │   │   ├── anno_paths.txt
+    │   │   └── class_names.txt
+    │   ├── ModelNetDataLoader.py		# ModelNet40数据集的DataLoader
+    │   ├── S3DISDataLoader.py			# S3DIS数据集的DataLoader
+    │   └── ShapeNetDataLoader.py		# ShapeNet数据集的DataLoader
+    ├── .gitattributes
+    ├── .gitignore
+    ├── LICENSE
+    ├── log								# 存放训练日志
+    │   ├── classification
+    │   ├── part_seg
+    │   └── sem_seg
+    ├── models							# 存放可以使用的模型方法
+    │   ├── pointnet2_cls_mrg.py		# 基于MRG策略执行分类任务的pointnet++模型
+    │   ├── pointnet2_cls_msg.py		# 基于MSG策略执行分类任务的pointnet++模型
+    │   ├── pointnet2_cls_ssg.py		# 基于SSG策略执行分类任务的pointnet++模型
+    │   ├── pointnet2_part_seg_msg.py	# 基于MSG策略执行部件分割任务的pointnet++模型
+    │   ├── pointnet2_part_seg_ssg.py	# 基于SSG策略执行部件分割任务的pointnet++模型
+    │   ├── pointnet2_sem_seg_msg.py	# 基于MSG策略执行语义分割任务的pointnet++模型
+    │   ├── pointnet2_sem_seg.py		# 基于SSG策略执行语义分割任务的pointnet++模型
+    │   ├── pointnet2_utils.py
+    │   ├── pointnet_cls.py				# 执行分类任务的pointnet模型
+    │   ├── pointnet_part_seg.py		# 执行部件分割任务的pointnet模型
+    │   ├── pointnet_sem_seg.py			# 执行语义分割任务的pointnet模型
+    │   └── pointnet_utils.py
+    ├── provider.py
+    ├── README.md
+    ├── test_classification.py			# 测试分类任务网络
+    ├── test_partseg.py					# 测试部件分割任务网络
+    ├── test_semseg.py					# 测试语义分割任务网络
+    ├── train_classification.py			# 训练分类任务网络
+    ├── train_partseg.py				# 训练部件分割任务网络
+    ├── train_semseg.py					# 训练语义分割任务网络
+    └── visualizer
+        ├── build.sh					# 编译render_balls_so.cpp
+        ├── eulerangles.py
+        ├── pc_utils.py
+        ├── plyfile.py
+        ├── render_balls_so.cpp			# 用于ShapeNet数据集可视化的C++代码
+        └── show3d_balls.py				# 用于ShapeNet数据集可视化的python代码
+```
+
+## 代码运行说明
+
+### 1、对源数据进行可视化，方便分析源数据特点
+
+**ModelNet40数据集：**
+
+源数据格式为txt，每个点包含6个维度的信息，分别是[x, y, z, nx, ny, nz]。其中，(x, y, z)表示该点在空间中的坐标，(nx, ny, nz)表示该点在空间中的法向量。我们使用软件[MeshLab](https://www.meshlab.net/)进行可视化。
+
+**ShapeNet数据集：**
+
+源数据格式为txt，每个点包含7个维度的信息，分别是[x, y, z, nx, ny, nz, type]。其中，(x, y, z)表示该点在空间中的坐标，(nx, ny, nz)表示该点在空间中的法向量，type是部件编号（该点属于哪个部件）。我们运行以下代码，对随机一个源数据进行可视化：
+
+```
+## build C++ code for visualization
+cd visualizer
+bash build.sh 
+## run one example 
+python show3d_balls.py
+```
+
+**S3DIS数据集：**
+
+源数据格式为txt，每个点包含6个维度的信息，分别是[x, y, z, r, g, b]。其中，(x, y, z)表示该点在空间中的坐标，(r, g, b)表示该点的rgb颜色信息。我们使用软件[CloudCompare](https://cloudcompare.org/)进行可视化。
+
+### 2、在ModelNet40数据集上进行分类
+
+#### 1) 数据准备
+
+将下载的ModelNet40解压，保存为`./data/modelnet40_normal_resampled/`
+
+#### 2) 运行参数说明
+
+①`--model`：可以选择使用哪种模型进行分类任务。
+
+在`./models`目录下，对于分类任务，有4个模型，分别是：
+
+- pointnet_cls(pointnet模型)
+- pointnet2_cls_ssg(采用SSG策略的pointnet++模型)
+- pointnet2_cls_msg(采用MSG策略的pointnet++模型)
+- pointnet2_cls_mrg(采用MRG策略的pointnet++模型)。**MRG策略的python代码是我们自己实现的**。
+
+②`--use_normals`：是否使用法向量信息。
+
+③`--log_dir`：生成日志文件。
+
+#### 3) 代码运行(训练与测试)
+
+**①pointnet without normal：**
+
+```
+python train_classification.py --model pointnet_cls --log_dir pointnet_cls
+python test_classification.py --log_dir pointnet_cls
+```
+
+**②pointnet with normal：**
+
+```
+python train_classification.py --model pointnet_cls --use_normals --log_dir pointnet_cls_norm
+python test_classification.py --use_normals --log_dir pointnet_cls_norm
+```
+
+**③pointnet2_ssg without normal：**
+
+```
+python train_classification.py --model pointnet2_cls_ssg --log_dir pointnet2_cls_ssg
+python test_classification.py --log_dir pointnet2_cls_ssg
+```
+
+**④pointnet2_ssg with normal：**
+
+```
+python train_classification.py --model pointnet2_cls_ssg --use_normals --log_dir pointnet2_cls_ssg_normal
+python test_classification.py --use_normals --log_dir pointnet2_cls_ssg_normal
+```
+
+**⑤pointnet2_msg without normal：**
+
+```
+python train_classification.py --model pointnet2_cls_msg --log_dir pointnet2_cls_msg
+python test_classification.py --log_dir pointnet2_cls_msg
+```
+
+**⑥pointnet2_msg with normal：**
+
+```
+python train_classification.py --model pointnet2_cls_msg --use_normals --log_dir pointnet2_cls_msg_normal
+python test_classification.py --use_normals --log_dir pointnet2_cls_msg_normal
+```
+
+**⑦pointnet2_mrg without normal：**
+
+```
+python train_classification.py --model pointnet2_cls_mrg --log_dir pointnet2_cls_mrg
+python test_classification.py --log_dir pointnet2_cls_mrg
+```
+
+**⑧pointnet2_mrg with normal：**
+
+```
+python train_classification.py --model pointnet2_cls_mrg --use_normals --log_dir pointnet2_cls_mrg_normal
+python test_classification.py --use_normals --log_dir pointnet2_cls_mrg_normal
+```
+
+### 3、在ShapeNet数据集上进行部件分割
+
+#### 1) 数据准备
+
+将下载的ShapeNet解压，保存为`./data/shapenetcore_partanno_segmentation_benchmark_v0_normal/`
+
+#### 2) 运行参数说明
+
+①`--model`：可以选择使用哪种模型进行部件分割任务。
+
+在`./models`目录下，对于部件分割任务，有3个模型，分别是：
+
+- pointnet_part_seg(pointnet模型)
+- pointnet2_part_seg_ssg(采用SSG策略的pointnet++模型)
+- pointnet2_part_seg_msg(采用MSG策略的pointnet++模型)
+
+②`--normal`：是否使用法向量信息。
+
+③`--log_dir`：生成日志文件。
+
+#### 3) 代码运行(训练与测试)
+
+**①pointnet without normal：**
+
+```
+python train_partseg.py --model pointnet_part_seg --log_dir pointnet_part_seg_wo_normal
+python test_partseg.py --log_dir pointnet_part_seg_wo_normal
+```
+
+**②pointnet with normal：**
+
+```
+python train_partseg.py --model pointnet_part_seg --normal --log_dir pointnet_part_seg
+python test_partseg.py --normal --log_dir pointnet_part_seg
+```
+
+**③pointnet2_ssg without normal：**
+
+```
+python train_partseg.py --model pointnet2_part_seg_ssg --log_dir pointnet2_part_seg_ssg_wo_normal
+python test_partseg.py --log_dir pointnet2_part_seg_ssg_wo_normal
+```
+
+**④pointnet2_ssg with normal：**
+
+```
+python train_partseg.py --model pointnet2_part_seg_ssg --normal --log_dir pointnet2_part_seg_ssg
+python test_partseg.py --normal --log_dir pointnet2_part_seg_ssg
+```
+
+**⑤pointnet2_msg without normal：**
+
+```
+python train_partseg.py --model pointnet2_part_seg_msg --log_dir pointnet2_part_seg_msg_wo_normal
+python test_partseg.py --log_dir pointnet2_part_seg_msg_wo_normal
+```
+
+**⑥pointnet2_msg with normal：**
+
+```
+python train_partseg.py --model pointnet2_part_seg_msg --normal --log_dir pointnet2_part_seg_msg
+python test_partseg.py --normal --log_dir pointnet2_part_seg_msg
+```
+
+### 4、在S3DIS数据集上进行语义分割，并对分割结果进行可视化
+
+#### 1) 数据准备
+
+将下载的S3DIS解压，保存为`./data/s3dis/Stanford3dDataset_v1.2_Aligned_Version/`
+
+再进行数据预处理：
+
+```
+cd data_utils
+python collect_indoor3d_data.py
+```
+
+处理后的数据将保存在`data/s3dis/stanford_indoor3d/`
+
+#### 2) 运行参数说明
+
+①`--model`：可以选择使用哪种模型进行语义分割任务。
+
+在`./models`目录下，对于语义分割任务，有3个模型，分别是：
+
+- pointnet_sem_seg(pointnet模型)
+- pointnet2_sem_seg(采用SSG策略的pointnet++模型)
+- pointnet2_sem_seg_msg(采用MSG策略的pointnet++模型)
+
+②`--test_area`：采用6-fold交叉验证：训练时使用五个区域，测试时使用剩下的那个区域。通过该参数，可以指定测试使用的区域。
+
+③`--log_dir`：生成日志文件。
+
+④`--visual`：在测试时生成可视化结果(obj格式文件)并保存。
+
+#### 3) 代码运行(训练与测试)
+
+**①pointnet**：
+
+```
+python train_semseg.py --model pointnet_sem_seg --test_area 5 --log_dir pointnet_sem_seg
+python test_semseg.py --log_dir pointnet_sem_seg --test_area 5 --visual
+```
+
+**②pointnet2_ssg**：
+
+```
+python train_semseg.py --model pointnet2_sem_seg --test_area 5 --log_dir pointnet2_sem_seg
+python test_semseg.py --log_dir pointnet2_sem_seg --test_area 5 --visual
+```
+
+**③pointnet2_msg：**
+
+```
+python train_semseg.py --model pointnet2_sem_seg_msg --test_area 5 --log_dir pointnet2_sem_seg_msg
+python test_semseg.py --log_dir pointnet2_sem_seg_msg --test_area 5 --visual
+```
+
+#### 4) 对分割结果进行可视化
+
+以pointnet2_sem_seg_msg为例，可视化结果保存在`./log/sem_seg/pointnet2_sem_seg_msg/visual`。在该目录下，对于每个房间数据，分别有房间语义分割的ground truth(如Area_5_conferenceRoom_1_gt.obj)和predict结果(如Area_5_conferenceRoom_1_pred.obj)。
+
+使用软件MeshLab，打开上述obj文件，即可得到ground truth和分割结果的可视化。
+
+## 实验运行及复现结果
+
+### 1、在ModelNet40数据集上进行分类，并查看显存占用
+
+Subvolume和MVCNN是直接用的论文中的数据，pointnet和pointnet++的数据是自己跑出来的。
+
+| 方法                           | Accuracy(%) | 显存占用(MB) |
+| ------------------------------ | ----------- | ------------ |
+| Subvolume                      | 89.2        | N/A          |
+| MVCNN                          | 90.1        | N/A          |
+| pointnet (without normal)      | 90.4        | 3053         |
+| pointnet (with normal)         | 91.8        | 3025         |
+| pointnet2_ssg (without normal) | 92.3        | 4671         |
+| pointnet2_ssg (with normal)    | 92.5        | 4673         |
+| pointnet2_msg (without normal) | 91.9        | 13671        |
+| pointnet2_msg (with normal)    | **93.1**    | 13671        |
+| pointnet2_mrg (without normal) | 92.2        | 10101        |
+| pointnet2_mrg (with normal)    | 92.7        | 10101        |
+
+可以看到：
+
+- 使用法向量特征、采用MSG策略的pointnet++达到了最好的性能，而使用法向量特征、采用MRG策略的pointnet++的性能仅次于它。
+
+- 虽然采用MSG策略的pointnet++性能最好，但是显存占用也是最高的。而采用MRG策略的pointnet++在性能没有明显下降的情况下，能够在一定程度上减少显存开销。
+
+### 2、在ShapeNet数据集上进行部件分割：
+
+Yi、SSCNN是直接用的论文中的数据，pointnet和pointnet++的数据是自己跑出来的。
+
+| 方法                           | mIoU(%)  |
+| ------------------------------ | -------- |
+| Yi                             | 81.4     |
+| SSCNN                          | 84.7     |
+| pointnet (without normal)      | 83.3     |
+| pointnet (with normal)         | 84.4     |
+| pointnet2_ssg (without normal) | 85.1     |
+| pointnet2_ssg (with normal)    | **85.5** |
+| pointnet2_msg (without normal) | 85.2     |
+| pointnet2_msg (with normal)    | **85.5** |
+
+可以看到，使用法向量特征、采用SSG策略或者MSG策略的Pointnet++都达到了最好的性能。
+
+### 3、在S3DIS数据集上进行语义分割，并对分割结果进行可视化
+
+| 方法          | Accuracy(%) | Class avg IoU(%) |
+| ------------- | ----------- | ---------------- |
+| pointnet      | 78.6        | 41.9             |
+| pointnet2_ssg | **83.4**    | 53.9             |
+| pointnet2_msg | 83.0        | **63.2**         |
+
+可以看到，相比于pointnet，无论采用哪种策略，pointnet++性能提升明显。
+
+下图是数据集中一个房间的ground truth：
+
+ <img src="D:\学习\研一上\计算机视觉\课程设计\report\img\exp_7_gt.png" alt="exp_7_gt" style="zoom: 33%;" />
+
+以下是针对该房间的三种模型分割结果的可视化：
+
+①pointnet：
+
+ <img src="D:\学习\研一上\计算机视觉\课程设计\report\img\exp_7_pointnet_predict.png" alt="exp_7_pointnet_predict" style="zoom:33%;" />
+
+②pointnet2_ssg：
+
+ <img src="D:\学习\研一上\计算机视觉\课程设计\report\img\exp_7_ssg_predict.png" alt="exp_7_ssg_predict" style="zoom:33%;" />
+
+③pointnet2_msg：
+
+ <img src="D:\学习\研一上\计算机视觉\课程设计\report\img\exp_7_msg_predict.png" alt="exp_7_msg_predict" style="zoom:33%;" />
+
+
+
+
+
